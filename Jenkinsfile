@@ -12,15 +12,15 @@ def helmInit() {
 
 def helmRepo(Map args) {
   println "添加 course repo"
-  sh "helm repo add --username ${args.username} --password ${args.password} course https://registry.qikqiak.com/chartrepo/course"
+  // sh "helm repo add --username ${args.username} --password ${args.password} course https://reg.utcook.com/chartrepo/course"
+  sh "helm repo add --username ${args.username} utcook https://reg.utcook.com/chartrepo/pub/"
 
   println "更新 repo"
   sh "helm repo update"
 
   println "获取 Chart 包"
   sh """
-    helm fetch course/polling
-    tar -xzvf polling-0.1.0.tgz
+    helm fetch --untar utcook/utcook --version=2.1.2
     """
 }
 
@@ -30,10 +30,10 @@ def helmDeploy(Map args) {
 
     if (args.dry_run) {
         println "Debug 应用"
-        sh "helm upgrade --dry-run --debug --install ${args.name} ${args.chartDir} --set persistence.persistentVolumeClaim.database.storageClass=database --set api.image.repository=${args.image} --set api.image.tag=${args.tag} --set imagePullSecrets[0].name=myreg --namespace=${args.namespace}"
+        sh "helm upgrade --dry-run --debug --install ${args.name} ${args.chartDir} --set api.image.repository=${args.image} --set api.image.tag=${args.tag} --set imagePullSecrets[0].name=myreg --namespace=${args.namespace}"
     } else {
         println "部署应用"
-        sh "helm upgrade --install ${args.name} ${args.chartDir} --set persistence.persistentVolumeClaim.database.storageClass=database --set api.image.repository=${args.image} --set api.image.tag=${args.tag} --set imagePullSecrets[0].name=myreg --namespace=${args.namespace}"
+        sh "helm upgrade --install ${args.name} ${args.chartDir} --set api.image.repository=${args.image} --set api.image.tag=${args.tag} --set imagePullSecrets[0].name=myreg --namespace=${args.namespace}"
         echo "应用 ${args.name} 部署成功. 可以使用 helm status ${args.name} 查看应用状态"
     }
 }
@@ -44,7 +44,7 @@ podTemplate(label: label, containers: [
   containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true),
   containerTemplate(name: 'helm', image: 'cnych/helm', command: 'cat', ttyEnabled: true)
 ], volumes: [
-  hostPathVolume(mountPath: '/root/.m2', hostPath: '/var/run/m2'),
+  persistentVolumeClaim(mountPath: '/root/.m2', claimName: 'jenkins-maven', readOnly: false),
   hostPathVolume(mountPath: '/home/jenkins/.kube', hostPath: '/root/.kube'),
   hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
 ]) {
@@ -53,8 +53,8 @@ podTemplate(label: label, containers: [
     def gitCommit = myRepo.GIT_COMMIT
     def gitBranch = myRepo.GIT_BRANCH
     def imageTag = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-    def dockerRegistryUrl = "registry.qikqiak.com"
-    def imageEndpoint = "course/polling-api"
+    def dockerRegistryUrl = "reg.utcook.com"
+    def imageEndpoint = "utcook/utcook"
     def image = "${dockerRegistryUrl}/${imageEndpoint}"
 
     stage('单元测试') {
@@ -88,7 +88,7 @@ podTemplate(label: label, containers: [
     }
     stage('运行 Helm') {
       withCredentials([[$class: 'UsernamePasswordMultiBinding',
-        credentialsId: 'dockerhub',
+        credentialsId: ' harbor-robot-jenkinsci',
         usernameVariable: 'DOCKER_HUB_USER',
         passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
           container('helm') {
@@ -96,9 +96,9 @@ podTemplate(label: label, containers: [
             echo "4. [INFO] 开始 Helm 部署"
             helmDeploy(
                 dry_run     : false,
-                name        : "polling",
-                chartDir    : "polling",
-                namespace   : "course",
+                name        : "utcook",
+                chartDir    : "utcook",
+                namespace   : "default",
                 tag         : "${imageTag}",
                 image       : "${image}",
                 username    : "${DOCKER_HUB_USER}",
