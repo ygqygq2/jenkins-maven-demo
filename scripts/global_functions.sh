@@ -9,36 +9,6 @@ if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
   export CONTAINER_TAG="stable"
 fi
 
-
-KUBERNETES_VERSION="1.13.5"
-DEV_NAMESPACE="dev"  # 各环境namespace
-UAT_NAMESPACE="uat"
-HELM_VERSION="2.11.0"
-HELM_REPO="https://reg.utcook.com/chartrepo/pub"
-HELM_REPO_NAME="utcook"
-HELM_HOST="tiller-deploy.kube-system:44134"
-
-CHART_NAME="utcook"  # chart模板名
-CHART_VERSION="1.1.0"  # chart模板版本
-CONTAINER_REPO="reg.utcook.com"  # 上传docker仓库
-CONTAINER_PROJECT="pub"  # docker仓库项目
-DOCKER_HOST="192.168.105.71:2375"
-DOCKER_USER="docker"
-DOCKER_PASSWD="Dev12345"
-DOCKER_DRIVER="overlay2"
-SONAR_URL="https://sonar.utcook.com"
-SONAR_TOKEN="d5680c3779c1f37680b887cfd1a2619914552034"
-MAVEN_HOST=https://nexus.utcook.com
-DOCKER_BUILD="true"  # 添加注释或者设置为false，不进行docker build
-STAGING_ENABLED="true"  # 添加注释或者设置为false,不部署dev环境
-ZAPROXY_DISABLED="true"  # 设置为true,不进行zaproxy扫描
-TEST_DISABLED="true"  # 设置为true,不进行test任务
-# CODE_QUALITY_DISABLED="true"  # 取消注释，设置为true，不进行代码质量扫描
-
-# POD个数
-REPLICAS="1"  # 默认为1
-UAT_REPLICAS="1"
-
 TMP_URL=$(echo ${GIT_URL} | sed -e 's#.*@##' -e 's#.git$##')
 CI_PROJECT_PATH_SLUG=$(echo ${TMP_URL#*/} | sed -e 's@_@-@g' -e 's@/@-@g' \
   | tr '[:upper:]' '[:lower:]' | sed 's@\.@@g') 
