@@ -59,7 +59,7 @@ spec:
         container('maven') {
           ansiColor('xterm') {
             sh """
-              source global_functions.sh
+              source scripts/global_functions.sh
               setup_docker
               build
             """
@@ -73,7 +73,7 @@ spec:
         container('helm') {
           ansiColor('xterm') {
             sh """
-              source global_functions.sh
+              source scripts/global_functions.sh
               install_dependencies
               download_chart
               ensure_namespace $DEV_NAMESPACE
