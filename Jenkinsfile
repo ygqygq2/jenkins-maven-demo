@@ -71,7 +71,7 @@ spec:
     DOCKER_DRIVER="overlay2"
     SONAR_URL="https://sonar.utcook.com"
     SONAR_TOKEN="d5680c3779c1f37680b887cfd1a2619914552034"
-    MAVEN_HOST=https://nexus.utcook.com
+    MAVEN_HOST="https://nexus.utcook.com"
     DOCKER_BUILD="true"  // 添加注释或者设置为false，不进行docker build
     STAGING_ENABLED="true"  // 添加注释或者设置为false,不部署dev环境
     ZAPROXY_DISABLED="true"  // 设置为true,不进行zaproxy扫描
