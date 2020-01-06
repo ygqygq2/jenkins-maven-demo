@@ -323,8 +323,8 @@ function build() {
 
   # 进行单元测试，需要有mvn_test.txt文件作为启动标识
   if [ -f mvn_test.txt ]; then
-    echo "mvn test -f ci-pom.xml"
-    mvn clean test -f ci-pom.xml && cat target/site/jacoco/index.html || exit 1
+    echo "mvn test -B -f ci-pom.xml"
+    mvn clean test -B -f ci-pom.xml && cat target/site/jacoco/index.html || exit 1
   fi
 
   # 进行sonar代码质量扫描
@@ -332,8 +332,8 @@ function build() {
   mvn sonar:sonar -Dsonar.java.binaries=target/sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN}
 
   # 执行mvn install
-  echo "mvn install -f ci-pom.xml -DskipTests"
-  mvn install -f ci-pom.xml -DskipTests $MVN_OPTION
+  echo "mvn install -B -f ci-pom.xml -DskipTests"
+  mvn install -B -f ci-pom.xml -DskipTests $MVN_OPTION
 }
     
 function test_image() {
