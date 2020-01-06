@@ -51,6 +51,7 @@ spec:
     // 全局环境变量
     KUBECONFIG = credentials('kubernetes-admin-config')
     CI_ENVIRONMENT_SLUG = "staging"
+    TRACE = "true"
   }  
 
   stages {
