@@ -33,15 +33,7 @@ spec:
     tty: true
     volumeMounts:
     - name: maven-data
-      mountPath: /root/.m2/repository
-  - name: kaniko   
-    image: ygqygq2/kaniko-executor:latest
-    command:
-    - cat
-    tty: true 
-    volumeMounts:
-    - name: docker-config
-      mountPath: /kaniko/.docker/config.json    
+      mountPath: /root/.m2/repository  
   - name: helm   
     image: ygqygq2/k8s-alpine:latest
     command:
@@ -50,10 +42,7 @@ spec:
   volumes:
   - name: maven-data
     persistentVolumeClaim:
-      claimName: jenkins-maven
-  - name: docker-config
-  secret:
-    secretName: jenkins-kaniko          
+      claimName: jenkins-maven        
 """
     }
   }
