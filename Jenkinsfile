@@ -1,112 +1,114 @@
-def label = "slave-${UUID.randomUUID().toString()}"
+pipeline {
+  options {
+    // 流水线超时设置
+    timeout(time:1, unit: 'HOURS')
+    //保持构建的最大个数
+    buildDiscarder(logRotator(numToKeepStr: '10'))
+    gitLabConnection("gitlab")
+  }
 
-def helmLint(String chartDir) {
-    println "校验 chart 模板"
-    sh "helm lint ${chartDir}"
-}
+  triggers {
+    gitlab(triggerOnPush: true,
+      triggerOnMergeRequest: true,
+      branchFilterType: "All",
+      secretToken: "t8vcxwuza023ehzcftzr5a74vkpto6xr")
+  }
 
-def helmInit() {
-  println "初始化 helm client"
-  sh "helm init --client-only --stable-repo-url https://mirror.azure.cn/kubernetes/charts/"
-}
-
-def helmRepo(Map args) {
-  println "添加 course repo"
-  // sh "helm repo add --username ${args.username} --password ${args.password} course https://reg.utcook.com/chartrepo/course"
-  sh "helm repo add --username ${args.username} utcook https://reg.utcook.com/chartrepo/pub/"
-
-  println "更新 repo"
-  sh "helm repo update"
-
-  println "获取 Chart 包"
-  sh """
-    helm fetch --untar utcook/utcook --version=2.1.2
-    """
-}
-
-def helmDeploy(Map args) {
-    helmInit()
-    helmRepo(args)
-
-    if (args.dry_run) {
-        println "Debug 应用"
-        sh "helm upgrade --dry-run --debug --install ${args.name} ${args.chartDir} --set api.image.repository=${args.image} --set api.image.tag=${args.tag} --set imagePullSecrets[0].name=myreg --namespace=${args.namespace}"
-    } else {
-        println "部署应用"
-        sh "helm upgrade --install ${args.name} ${args.chartDir} --set api.image.repository=${args.image} --set api.image.tag=${args.tag} --set imagePullSecrets[0].name=myreg --namespace=${args.namespace}"
-        echo "应用 ${args.name} 部署成功. 可以使用 helm status ${args.name} 查看应用状态"
+  agent {
+    // k8s pod设置
+    kubernetes {
+      label "jenkins-slave-${UUID.randomUUID().toString()}"
+      yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins-role: slave-docker
+spec:
+  containers:
+  - name: maven   
+    image: maven:3.6-alpine
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: maven-data
+      mountPath: /root/.m2/repository
+  - name: kaniko   
+    image: ygqygq2/kaniko-executor:latest
+    command:
+    - cat
+    tty: true 
+    volumeMounts:
+    - name: docker-config
+      mountPath: /kaniko/.docker/config.json    
+  - name: helm   
+    image: ygqygq2/k8s-alpine:latest
+    command:
+    - cat
+    tty: true
+  volumes:
+  - name: maven-data
+    persistentVolumeClaim:
+      claimName: jenkins-maven
+  - name: docker-config
+  secret:
+    secretName: jenkins-kaniko          
+"""
     }
-}
+  }
 
+  environment {
+    // 全局环境变量
+    KUBECONFIG = credentials('kubernetes-admin-config') = "uat"
+    CI_ENVIRONMENT_SLUG = "staging"
+  }  
 
-podTemplate(label: label, containers: [
-  containerTemplate(name: 'maven', image: 'maven:3.6-alpine', command: 'cat', ttyEnabled: true),
-  containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true),
-  containerTemplate(name: 'helm', image: 'cnych/helm', command: 'cat', ttyEnabled: true)
-], volumes: [
-  persistentVolumeClaim(mountPath: '/root/.m2', claimName: 'jenkins-maven', readOnly: false),
-  hostPathVolume(mountPath: '/home/jenkins/.kube', hostPath: '/root/.kube'),
-  hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
-]) {
-  node(label) {
-    def myRepo = checkout scm
-    def gitCommit = myRepo.GIT_COMMIT
-    def gitBranch = myRepo.GIT_BRANCH
-    def imageTag = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-    def dockerRegistryUrl = "reg.utcook.com"
-    def imageEndpoint = "utcook/utcook"
-    def image = "${dockerRegistryUrl}/${imageEndpoint}"
-
-    stage('单元测试') {
-      echo "1.测试阶段"
-    }
-    stage('代码编译打包') {
-      try {
+  stages {
+    stage('Maven CI') {
+      steps {
         container('maven') {
-          echo "2. 代码编译打包阶段"
-          sh "mvn install -Dmaven.test.skip=true"
-        }
-      } catch (exc) {
-        println "构建失败 - ${currentBuild.fullDisplayName}"
-        throw(exc)
-      }
-    }
-    stage('构建 Docker 镜像') {
-      withCredentials([[$class: 'UsernamePasswordMultiBinding',
-        credentialsId: 'dockerhub',
-        usernameVariable: 'DOCKER_HUB_USER',
-        passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
-          container('docker') {
-            echo "3. 构建 Docker 镜像阶段"
+          ansiColor('xterm') {
             sh """
-              docker login ${dockerRegistryUrl} -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
-              docker build -t ${image}:${imageTag} .
-              docker push ${image}:${imageTag}
-              """
+              source global_functions.sh
+              setup_docker
+              build
+            """
           }
+        }          
       }
     }
-    stage('运行 Helm') {
-      withCredentials([[$class: 'UsernamePasswordMultiBinding',
-        credentialsId: ' harbor-robot-jenkinsci',
-        usernameVariable: 'DOCKER_HUB_USER',
-        passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
-          container('helm') {
-            // todo，可以做分支判断
-            echo "4. [INFO] 开始 Helm 部署"
-            helmDeploy(
-                dry_run     : false,
-                name        : "utcook",
-                chartDir    : "utcook",
-                namespace   : "default",
-                tag         : "${imageTag}",
-                image       : "${image}",
-                username    : "${DOCKER_HUB_USER}",
-                password    : "${DOCKER_HUB_PASSWORD}"
-            )
-            echo "[INFO] Helm 部署应用成功..."
+  }
+
+  stages {
+    stage('Helm deploy') {
+      steps {
+        container('helm') {
+          ansiColor('xterm') {
+            sh """
+              source global_functions.sh
+              install_dependencies
+              download_chart
+              ensure_namespace $DEV_NAMESPACE
+              initialize_tiller
+              create_secret
+              deploy $DEV_NAMESPACE
+            """
           }
+        }          
       }
     }
+  }
+      
+  post {
+      aborted {
+          echo "post condition executed: aborted ..."
+      }        
+      failure {
+          updateGitlabCommitStatus name: "build", state: "failed"
+      }
+      success {
+          updateGitlabCommitStatus name: "build", state: "success"
+      }
   }
 }

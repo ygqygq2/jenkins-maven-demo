@@ -1,0 +1,76 @@
+---
+# codeclimate引擎设置
+version: "2"
+plugins:
+  duplication:
+    enabled: true
+  pmd:
+    enabled: true
+  sonar-java:
+    enabled: true
+  checkstyle:
+    enabled: false
+  shellcheck:
+    enabled: true
+  fixme:
+    enabled: true
+  markdownlint:
+    enabled: true
+    checks:
+      MD002: # "First header should be a h1 header"
+        enabled: false
+exclude_patterns:
+  - target/
+
+
+## 以下是可选引擎
+# Available engines:
+# - apexmetrics: ApexMetrics is a static code analysis tool for Salesforce.com Apex.
+# - brakeman: A static analysis tool which checks Ruby on Rails applications for security vulnerabilities.
+# - bundler-audit: Patch-level verification for Bundler.
+# - checkstyle: Helps programmers write Java that adheres to a coding standard.
+# - codescan: A static analysis tool for Salesforce.com Apex, Visual Force, Aura and Lightning.
+# - coffeelint: A style checker for CoffeeScript.
+# - credo: A static code analysis tool for the Elixir language with a focus on code consistency and teaching.
+# - csslint: Automated linting of Cascading Stylesheets.
+# - duplication: Structural duplication detection for Ruby, Python, Java, JavaScript, and PHP.
+# - eslint: A JavaScript/JSX linting utility.
+# - fixme: Finds FIXME, TODO, HACK, etc. comments.
+# - flog: Easy to read reporting of complexity/pain for Ruby code.
+# - foodcritic: Lint tool for Chef cookbooks.
+# - git-legal: License compliance and compatibility analysis.
+# - gnu-complexity: Checks complexity of C code.
+# - gofmt: Checks the formatting of Go programs.
+# - golint: A linter for Go.
+# - govet: Reports suspicious constructs in Go programs.
+# - grep: Detects specified patterns in files.
+# - haml-lint: A tool for writing clean and consistent HAML.
+# - haxe-checkstyle: Checkstyle is a development library to help developers write Haxe code that adheres to a coding standard.
+# - hlint: A linter for Haskell programs.
+# - kibit: Static code analyzer for Clojure, ClojureScript, cljx and other Clojure variants.
+# - markdownlint: Flags style issues within Markdown files.
+# - nodesecurity: Security tool for Node.js dependencies.
+# - pep8: Static analysis tool to check Python code against the style conventions outlined in PEP-8.
+# - phan: Phan is a static analyzer for PHP.
+# - phpcodesniffer: Detects violations of a defined set of coding standards in PHP.
+# - phpmd: A PHP static analysis tool.
+# - pmd: A source code analyzer for Java.
+# - proselint: A linter for prose.
+# - radon: Python tool used to compute Cyclomatic Complexity.
+# - reek: Reek examines Ruby classes, modules, and methods and reports any code smells it finds.
+# - requiresafe: Security tool for Node.js dependencies.
+# - rubocop: A Ruby static code analyzer, based on the community Ruby style guide.
+# - rubymotion: Rubymotion-specific rubocop checks.
+# - rustfmt: A tool for formatting Rust code according to style guidelines.
+# - scss-lint: A configurable tool for writing clean and consistent SCSS.
+# - shellcheck: A static analysis tool for shell scripts.
+# - sonar-java: Over 400 checks for bugs, vulnerabilities, and code smells in Java code.
+# - sonar-php: SonarLint for PHP.
+# - sonar-python: SonarLint for Python.
+# - structure: Performs structural checks on code.
+# - stylelint: A mighty, modern CSS linter.
+# - swiftlint: A tool to enforce Swift style and conventions.
+# - tailor: Cross-platform static analyzer and linter for Swift.
+# - tslint: An extensible linter for the TypeScript language
+# - vint: Fast and Highly Extensible Vim script Language Lint implemented by Python.
+# - watson: A young Ember Doctor to help you fix your code.
