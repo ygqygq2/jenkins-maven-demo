@@ -27,7 +27,7 @@ metadata:
 spec:
   containers:
   - name: maven   
-    image: maven:3.6-alpine
+    image: ygqygq2/maven:latest
     command:
     - cat
     tty: true

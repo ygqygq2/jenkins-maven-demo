@@ -412,4 +412,4 @@ function delete() {
 }
 
 # 支持定制化function以覆盖默认设置
-# [ -f scripts/function.sh ] && source scripts/function.sh
+[ -f scripts/function.sh ] && source scripts/function.sh || true
