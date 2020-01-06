@@ -78,9 +78,7 @@ spec:
         }          
       }
     }
-  }
 
-  stages {
     stage('Helm deploy') {
       steps {
         container('helm') {
