@@ -299,7 +299,7 @@ function build() {
 
   # 进行sonar代码质量扫描
   echo "mvn sonar"
-  mvn sonar:sonar -Dsonar.java.binaries=target/sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN}
+  mvn -B sonar:sonar -Dsonar.java.binaries=target/sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONAR_TOKEN}
 
   # 执行mvn install
   echo "mvn install -B -f ci-pom.xml -DskipTests"
