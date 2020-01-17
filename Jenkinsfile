@@ -57,7 +57,7 @@ spec:
     DEV_NAMESPACE="dev"  // 各环境namespace
     UAT_NAMESPACE="uat"
     HELM_VERSION="2.11.0"
-    HELM_REPO="https://reg.utcook.com/chartrepo/pub"
+    HELM_REPO="https://ygqygq2.github.io/charts"
     HELM_REPO_NAME="utcook"
     HELM_HOST="tiller-deploy.kube-system:44134"
 
